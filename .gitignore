@@ -32,3 +32,5 @@ application-secret.properties
 # OS files
 .DS_Store
 Thumbs.db
+
+bus-schedule-service/startup-log.txt
