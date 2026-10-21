@@ -1,0 +1,61 @@
+﻿services:
+  bus-route-service:
+    build:
+      context: ./bus-route-service
+    container_name: nexbus-bus-route
+    ports:
+      - "8080:8080"
+    environment:
+      NEXBUS_API_KEY: ${NEXBUS_API_KEY:?Set NEXBUS_API_KEY in .env}
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/bus-routes-db
+    volumes:
+      - bus-route-data:/app/data
+    restart: unless-stopped
+
+  bus-schedule-service:
+    build:
+      context: ./bus-schedule-service
+    container_name: nexbus-bus-schedule
+    ports:
+      - "8081:8081"
+    environment:
+      NEXBUS_SCHEDULE_API_KEY: ${NEXBUS_SCHEDULE_API_KEY:?Set NEXBUS_SCHEDULE_API_KEY in .env}
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/bus-schedules-db
+    volumes:
+      - bus-schedule-data:/app/data
+    restart: unless-stopped
+
+  bus-operator-service:
+    build:
+      context: ./bus-operator-service
+    container_name: nexbus-bus-operator
+    environment:
+      NEXBUS_OPERATOR_API_KEY: ${NEXBUS_OPERATOR_API_KEY:?Set NEXBUS_OPERATOR_API_KEY in .env}
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/bus-operators-db
+    volumes:
+      - bus-operator-data:/app/data
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: nexbus-api-gateway
+    ports:
+      - "8082:8082"
+    environment:
+      BUS_ROUTE_URI: http://bus-route-service:8080
+      BUS_SCHEDULE_URI: http://bus-schedule-service:8081
+      BUS_OPERATOR_URI: http://bus-operator-service:8083
+      NEXBUS_API_KEY: ${NEXBUS_API_KEY:?Set NEXBUS_API_KEY in .env}
+      NEXBUS_SCHEDULE_API_KEY: ${NEXBUS_SCHEDULE_API_KEY:?Set NEXBUS_SCHEDULE_API_KEY in .env}
+      NEXBUS_OPERATOR_API_KEY: ${NEXBUS_OPERATOR_API_KEY:?Set NEXBUS_OPERATOR_API_KEY in .env}
+    depends_on:
+      - bus-route-service
+      - bus-schedule-service
+      - bus-operator-service
+    restart: unless-stopped
+
+volumes:
+  bus-route-data:
+  bus-schedule-data:
+  bus-operator-data:

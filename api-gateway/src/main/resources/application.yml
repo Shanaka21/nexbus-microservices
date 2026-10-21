@@ -1,0 +1,37 @@
+﻿server:
+  port: 8082
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: bus-route-service
+              uri: ${BUS_ROUTE_URI:http://localhost:8080}
+              predicates:
+                - Path=/api/bus-routes/**
+              filters:
+                - AddRequestHeader=X-API-KEY, ${NEXBUS_API_KEY:}
+
+            - id: bus-schedule-service
+              uri: ${BUS_SCHEDULE_URI:http://localhost:8081}
+              predicates:
+                - Path=/api/bus-schedules/**
+              filters:
+                - AddRequestHeader=X-API-KEY, ${NEXBUS_SCHEDULE_API_KEY:}
+
+            - id: bus-operator-service
+              uri: ${BUS_OPERATOR_URI:http://localhost:8083}
+              predicates:
+                - Path=/api/bus-operators/**
+              filters:
+                - AddRequestHeader=X-API-KEY, ${NEXBUS_OPERATOR_API_KEY:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
